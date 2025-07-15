@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "../../OneDrive/Desktop/Python project 2"
+		},
+		{
+			"name": "ExpenseTracker_Skolers",
+			"path": "../../OneDrive/Desktop/Dbms pro/ExpenseTracker_Skolers"
+		}
+	],
+	"settings": {
+		"git.ignoreLimitWarning": true,
+		"liveServer.settings.multiRootWorkspaceName": "ExpenseTracker_Skolers"
+	}
+}
