@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paisa Tracker - Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <h1>Paisa Tracker</h1>
+        <form onsubmit="login(event)">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required>
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+            
+            <button type="submit">Login</button>
+        </form>
+        <p>Don't have an account? <a href="#">Register now</a></p>
+    </div>
+    <script>
+        function login(event) {
+            event.preventDefault(); // Prevent form from submitting traditionally
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Example validation (this should be replaced with server-side validation)
+            if (username && password) {
+                // Redirect to home.html
+                window.location.href = "home.html";
+            } else {
+                alert("Please enter valid credentials.");
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Charts</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .chart-container {
+      width: 60%; /* Adjust the percentage as needed */
+      max-width: 400px; /* Limit maximum size */
+      margin: 20px auto; /* Center the charts */
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div style="text-align: center;">
+    <h1>Expense Visualization</h1>
+    
+    <div class="chart-container">
+      <canvas id="weeklyChart"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="monthlyChart"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="yearlyChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // Example expense data
+    const weeklyExpenses = [50, 75, 60, 80, 40, 90, 100]; // per day
+    const monthlyExpenses = [500, 750, 600, 800, 400, 900, 1000]; // per week
+    const yearlyExpenses = [6000, 7000, 8000, 9000, 10000, 11000, 12000]; // per month
+
+    // Labels
+    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // Weekly Chart
+    new Chart(document.getElementById('weeklyChart'), {
+      type: 'bar',
+      data: {
+        labels: weekDays,
+        datasets: [{
+          label: 'Weekly Expenses (₹)',
+          data: weeklyExpenses,
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: true, text: 'Weekly Expenses' }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    // Monthly Chart
+    new Chart(document.getElementById('monthlyChart'), {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [{
+          label: 'Monthly Expenses (₹)',
+          data: monthlyExpenses,
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 2,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: true, text: 'Monthly Expenses' }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    // Yearly Chart
+    new Chart(document.getElementById('yearlyChart'), {
+      type: 'pie',
+      data: {
+        labels: months,
+        datasets: [{
+          label: 'Yearly Expenses (₹)',
+          data: yearlyExpenses,
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 
+            'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)',
+            'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)',
+            'rgba(255, 99, 132, 0.3)', 'rgba(54, 162, 235, 0.3)',
+            'rgba(255, 206, 86, 0.3)', 'rgba(75, 192, 192, 0.3)',
+            'rgba(153, 102, 255, 0.3)', 'rgba(255, 159, 64, 0.3)'
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 
+            'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)',
+            'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: true, text: 'Yearly Expenses' }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
