@@ -1,0 +1,142 @@
+import streamlit as st
+import requests
+import datetime
+from collections import defaultdict
+import re
+import os
+from groq import Groq
+
+# ==== SECRETS ====
+# Normally, use an environment variable for safety!
+GROQ_API_KEY = "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"
+# GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
+API_KEY = "2f7a6673b3d2db06aeda7ea92b023bc3"  # Your OpenWeatherMap key
+
+WEATHER_EMOJIS = {
+    "clear sky": "☀️", "few clouds": "🌤️", "scattered clouds": "⛅",
+    "broken clouds": "☁️", "overcast clouds": "☁️", "shower rain": "🌧️",
+    "rain": "🌧️", "thunderstorm": "⛈️", "snow": "❄️", "mist": "🌫️"
+}
+
+# ==== Groq LLM function ====
+groq_client = Groq(api_key=GROQ_API_KEY)
+
+def llm_parse_query(user_input):
+    prompt = f"""
+You are an assistant that helps extract weather query parameters from flexible user input.
+
+If the user's input is a greeting (like 'hi', 'hello', 'how are you'), just respond as a friendly assistant and do not output city/days.
+
+If the input is a weather request, extract:
+- city (most likely place referenced)
+- num_days (1 for today/current, 2..5 for forecast)
+
+Output (for weather queries) as: city=<city>, days=<days>
+Examples:
+User: What's the weather in Mumbai?
+city=Mumbai, days=1
+
+User: Show me the forecast for London next 3 days
+city=London, days=3
+
+User: hi
+Hi! How can I help you with the weather?
+
+User: 5 day forecast for Paris
+city=Paris, days=5
+
+Here is the user query:
+{user_input}
+Respond:"""
+
+    response = groq_client.chat.completions.create(
+        model="llama3-70b-8192",
+        messages=[
+            {"role": "system", "content": "Be concise, helpful, and only output city and days if it is a weather query."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    output = response.choices[0].message.content.strip()
+    return output
+
+# ==== Weather fetch function (unchanged) ====
+def get_weather_prediction(city_name, num_days=1):
+    if num_days == 1:
+        url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&units=metric&appid={API_KEY}"
+        response = requests.get(url)
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        return {"type": "current", "data": data}
+    else:
+        url = f"https://api.openweathermap.org/data/2.5/forecast?q={city_name}&units=metric&appid={API_KEY}"
+        response = requests.get(url)
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        daily = defaultdict(list)
+        for entry in data['list']:
+            dt = datetime.datetime.fromtimestamp(entry['dt'])
+            day = dt.date()
+            daily[day].append(entry)
+
+        summaries = []
+        for day, entries in list(daily.items())[:num_days]:
+            temps = [e['main']['temp'] for e in entries]
+            conditions = [e['weather'][0]['description'] for e in entries]
+            most_common_cond = max(set(conditions), key=conditions.count)
+            summaries.append({
+                'date': day,
+                'min_temp': min(temps),
+                'max_temp': max(temps),
+                'condition': most_common_cond,
+                'emoji': WEATHER_EMOJIS.get(most_common_cond.lower(), "🌍")
+            })
+        return {"type": "forecast", "data": summaries}
+
+# ==== Streamlit App UI ====
+st.title("Weather Agent 🌤️ (Now powered by Groq Llama 3!)")
+
+st.markdown("### Ask about the weather or just say hi!")
+st.markdown("Examples: 'Weather in London', 'Hello', '5 day forecast for Mumbai', 'How are you?', 'Current weather in Paris'")
+
+user_input = st.text_input("Say something:", "")
+
+if st.button("Submit"):
+    if user_input:
+        with st.spinner("Thinking..."):
+            llm_response = llm_parse_query(user_input)
+            # Handle greeting/small talk
+            if not llm_response.lower().startswith("city="):
+                st.success(llm_response)
+            else:
+                # Extract city and days from LLM output
+                match = re.search(r"city=([A-Za-z\s.\-']+),\s*days=(\d+)", llm_response)
+                if not match:
+                    st.info("Sorry, I couldn't figure out the weather query details.")
+                else:
+                    city = match.group(1).strip()
+                    days = int(match.group(2))
+                    result = get_weather_prediction(city, days)
+                    if not result:
+                        st.warning(f"City '{city}' not found or data fetch error.")
+                    else:
+                        if result["type"] == "current":
+                            city_weather = result["data"]
+                            condition = city_weather['weather'][0]['description']
+                            emoji = WEATHER_EMOJIS.get(condition.lower(), "🌍")
+                            st.success(f"Current Weather for {city_weather['name']}: {emoji}")
+                            st.write(f"**Temperature:** {city_weather['main']['temp']}°C {emoji}")
+                            st.write(f"**Feels like:** {city_weather['main']['feels_like']}°C")
+                            st.write(f"**Condition:** {condition} {emoji}")
+                            st.write(f"**Humidity:** {city_weather['main']['humidity']}%")
+                            st.write(f"**Wind Speed:** {city_weather['wind']['speed']} m/s")
+                        else:
+                            st.subheader(f"Weather Roadmap for {city} (Next {len(result['data'])} Days)")
+                            table = "| Day | Date | Condition | Min/Max Temp (°C) | Emoji |\n|-----|------|-----------|-------------------|-------|\n"
+                            for i, day_data in enumerate(result["data"], 1):
+                                table += f"| Day {i} | {day_data['date']} | {day_data['condition']} | {day_data['min_temp']:.1f} / {day_data['max_temp']:.1f} | {day_data['emoji']} |\n"
+                            st.markdown(table)
+    else:
+        st.warning("Please enter a query.")
