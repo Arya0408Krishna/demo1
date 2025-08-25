@@ -1,0 +1,41 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+
+#define HEAT_SENSOR_PIN 33
+#define FIRE_THRESHOLD 60
+
+const char* ssid = "your_wifi_ssid";
+const char* password = "your_wifi_password";
+const char* alert_url = "http://your_server.com/fire-alert";
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(HEAT_SENSOR_PIN, INPUT);
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+}
+
+void loop() {
+  int sensorValue = analogRead(HEAT_SENSOR_PIN);
+  float temperature = (sensorValue / 4095.0) * 100;
+
+  Serial.print("Temperature: ");
+  Serial.println(temperature);
+
+  if (temperature > FIRE_THRESHOLD) {
+    if (WiFi.status() == WL_CONNECTED) {
+      HTTPClient http;
+      http.begin(alert_url);
+      http.addHeader("Content-Type", "application/json");
+      String payload = "{\"alert\": \"Fire detected! Temperature: " + String(temperature) + "\"}";
+      http.POST(payload);
+      http.end();
+    }
+    delay(10000);
+  }
+
+  delay(2000);
+}
