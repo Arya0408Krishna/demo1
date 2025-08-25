@@ -1,0 +1,55 @@
+#define ENTRY_SENSOR_PIN  14
+#define EXIT_SENSOR_PIN   27
+#define BULB_PIN          26
+
+int personCount = 0;
+int totalEntries = 0;
+bool entryLastState = HIGH;
+bool exitLastState = HIGH;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(ENTRY_SENSOR_PIN, INPUT_PULLUP);
+  pinMode(EXIT_SENSOR_PIN, INPUT_PULLUP);
+  pinMode(BULB_PIN, OUTPUT);
+  digitalWrite(BULB_PIN, LOW);
+  Serial.println("Visitor Counter Initialized");
+  Serial.println("Total Entries: 0");
+  Serial.println("People Inside: 0");
+}
+
+void loop() {
+  bool entryState = digitalRead(ENTRY_SENSOR_PIN);
+  bool exitState = digitalRead(EXIT_SENSOR_PIN);
+
+  if (entryLastState == HIGH && entryState == LOW) {
+    personCount++;
+    totalEntries++;
+    Serial.print("Entry detected. Total Entries: ");
+    Serial.println(totalEntries);
+    Serial.print("People inside: ");
+    Serial.println(personCount);
+    updateBulb();
+    delay(300);
+  }
+  entryLastState = entryState;
+
+  if (exitLastState == HIGH && exitState == LOW && personCount > 0) {
+    personCount--;
+    Serial.print("Exit detected. People inside: ");
+    Serial.println(personCount);
+    updateBulb();
+    delay(300);
+  }
+  exitLastState = exitState;
+}
+
+void updateBulb() {
+  if (personCount > 0) {
+    digitalWrite(BULB_PIN, HIGH);
+    Serial.println("Bulb: ON");
+  } else {
+    digitalWrite(BULB_PIN, LOW);
+    Serial.println("Bulb: OFF");
+  }
+}
