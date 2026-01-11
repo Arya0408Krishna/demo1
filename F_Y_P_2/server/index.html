@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blood Group Detection</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8f9fa; }
+        h2, h1 { color: #007bff; }
+        .container { margin: 40px auto; max-width: 480px; background: #fff; padding: 24px 32px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);}
+        input, select { width: 100%; padding: 8px 6px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc;}
+        button, input[type=submit] { background: #007bff; color: #fff; border: none; border-radius: 4px; padding: 10px 30px; font-size: 16px; cursor: pointer;}
+        table { width: 100%; border-collapse: collapse; margin-top: 24px;}
+        th, td { border: 1px solid #dee2e6; padding: 8px 12px; text-align: left;}
+        tr:nth-child(even) { background: #f2f3f7;}
+        .fingerprint-img { max-width: 120px; display: block; margin: 8px 0;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Enter Details</h1>
+        <form action="/predict" method="post" enctype="multipart/form-data">
+            <label>Name:</label>
+            <input type="text" name="name" required>
+
+            <label>Mobile:</label>
+            <input type="text" name="mobile" pattern="[0-9]{10}" required>
+
+            <label>Gender:</label>
+            <select name="gender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label>Age:</label>
+            <input type="number" name="age" min="1" max="120" required>
+
+            <label>Upload Fingerprint:</label>
+            <input type="file" name="file" accept="image/*" required>
+
+            <input type="submit" value="Detect Blood Group">
+        </form>
+
+        {% if result %}
+        <h2>Detection Result</h2>
+        <table>
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>Name</td><td>{{ result.name }}</td></tr>
+            <tr><td>Mobile</td><td>{{ result.mobile }}</td></tr>
+            <tr><td>Gender</td><td>{{ result.gender }}</td></tr>
+            <tr><td>Age</td><td>{{ result.age }}</td></tr>
+            <tr><td>Fingerprint</td>
+                <td>
+                    <img class="fingerprint-img" src="{{ result.image_path }}" alt="Fingerprint image">
+                </td>
+            </tr>
+            <tr><td>Confidence</td><td>{{ result.confidence }}</td></tr>
+            <tr><td>Blood Group</td><td>{{ result.prediction }}</td></tr>
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>
